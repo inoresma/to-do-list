@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'apps.categorias_app.apps.CategoriasAppConfig',
     'apps.comentarios_app.apps.ComentariosAppConfig',
     'apps.notificaciones_app.apps.NotificacionesAppConfig',
+    'rest_framework',
     ]
 
 MIDDLEWARE = [
@@ -132,3 +133,14 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'usuarios_app.Usuario'
+
+# Configuración de REST Framework
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+}
