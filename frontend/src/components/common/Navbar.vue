@@ -1,5 +1,5 @@
 <template>
-  <nav class="bg-white border-b border-secondary/10">
+  <nav v-if="$route.path !== '/login'" class="bg-white border-b border-secondary/10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-16">
         <div class="flex">
@@ -8,6 +8,7 @@
           </div>
           <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
             <router-link 
+              v-if="usuario"
               to="/tareas" 
               class="text-text hover:text-primary border-transparent hover:border-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
               :class="{ 'border-primary text-primary': $route.path === '/tareas' }"
