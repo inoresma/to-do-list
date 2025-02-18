@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen bg-gray-50 px-4 py-4 sm:py-8">
+  <div class="min-h-screen bg-background px-4 py-4 sm:py-8">
     <div class="max-w-3xl mx-auto">
       <!-- Encabezado -->
       <div class="mb-6 sm:mb-8">
-        <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Configuración del Perfil</h1>
-        <p class="mt-1 text-sm text-gray-500">
+        <h1 class="text-xl sm:text-2xl font-bold text-text">Configuración del Perfil</h1>
+        <p class="mt-1 text-sm text-secondary">
           Gestiona tu información personal y cómo otros te ven en la plataforma.
         </p>
       </div>
@@ -21,26 +21,26 @@
             />
             <UserCircleIcon 
               v-else 
-              class="h-20 w-20 sm:h-24 sm:w-24 text-gray-300 rounded-full bg-gray-50 p-1" 
+              class="h-20 w-20 sm:h-24 sm:w-24 text-secondary rounded-full bg-background p-1" 
               aria-hidden="true" 
             />
           </div>
           <div class="w-full sm:w-auto">
             <label class="block">
-              <span class="text-sm font-medium text-gray-700">Foto de perfil</span>
+              <span class="text-sm font-medium text-text">Foto de perfil</span>
               <input 
                 type="file" 
                 @change="handleFileChange"
                 accept="image/*"
-                class="mt-1 block w-full text-sm text-gray-500
+                class="mt-1 block w-full text-sm text-secondary
                   file:mr-4 file:py-2 file:px-4
                   file:rounded-full file:border-0
                   file:text-sm file:font-semibold
-                  file:bg-indigo-50 file:text-indigo-700
-                  hover:file:bg-indigo-100"
+                  file:bg-primary file:text-white
+                  hover:file:bg-accent cursor-pointer"
               />
             </label>
-            <p class="mt-1 text-xs text-gray-500">PNG, JPG, GIF hasta 10MB</p>
+            <p class="mt-1 text-xs text-secondary">PNG, JPG, GIF hasta 10MB</p>
           </div>
         </div>
 

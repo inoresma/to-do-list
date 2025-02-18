@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, logout
 from .serializers import UsuarioSerializer
 
 class UsuarioViewSet(viewsets.ModelViewSet):
@@ -25,3 +25,10 @@ class UsuarioViewSet(viewsets.ModelViewSet):
         user = serializer.save()
         user.set_password(self.request.data.get('password'))
         user.save()
+
+@api_view(['POST'])
+def logout_view(request):
+    if request.user.is_authenticated:
+        logout(request)
+        return Response({'message': 'Sesión cerrada correctamente'})
+    return Response({'message': 'No hay sesión activa'}, status=status.HTTP_400_BAD_REQUEST)
