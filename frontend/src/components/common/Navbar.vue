@@ -14,13 +14,6 @@
             >
               Tareas
             </router-link>
-            <router-link 
-              to="/usuarios" 
-              class="text-text hover:text-primary border-transparent hover:border-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-              :class="{ 'border-primary text-primary': $route.path === '/usuarios' }"
-            >
-              Usuarios
-            </router-link>
           </div>
         </div>
         <div class="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
@@ -106,6 +99,16 @@
                 <span class="text-text font-medium">{{ usuario.first_name || usuario.username }}</span>
               </router-link>
             </div>
+
+            <!-- Botón de cerrar sesión -->
+            <button 
+              @click="cerrarSesion"
+              class="p-2 text-secondary hover:text-red-500 rounded-full hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200"
+              title="Cerrar sesión"
+            >
+              <ArrowRightOnRectangleIcon class="h-5 w-5" aria-hidden="true" />
+              <span class="sr-only">Cerrar sesión</span>
+            </button>
           </template>
 
           <router-link 
@@ -121,6 +124,9 @@
   </nav>
 </template>
 
+
+
+
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { 
@@ -129,15 +135,18 @@ import {
   CheckCircleIcon,
   ClockIcon,
   ChatBubbleLeftIcon,
-  DocumentIcon 
+  DocumentIcon,
+  ArrowRightOnRectangleIcon
 } from '@heroicons/vue/24/outline'
 import { useAuth } from '@/composables/useAuth'
+import { useRouter } from 'vue-router'
 
 const { usuario, cargando, error, obtenerUsuario } = useAuth()
 const notificacionesNoLeidas = ref(0)
 const notificaciones = ref([])
 const cargandoNotificaciones = ref(false)
 const mostrarNotificaciones = ref(false)
+const router = useRouter()
 
 const obtenerNotificacionesNoLeidas = async () => {
   try {
@@ -198,6 +207,33 @@ const formatearFecha = (fecha) => {
     hour: '2-digit',
     minute: '2-digit'
   })
+}
+
+const cerrarSesion = async () => {
+  try {
+    const csrfToken = document.cookie.split('; ')
+      .find(row => row.startsWith('csrftoken='))
+      ?.split('=')[1];
+
+    const response = await fetch('/api/logout/', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken || '',
+      }
+    })
+    
+    if (response.ok) {
+      usuario.value = null
+      router.push('/login')
+    } else {
+      throw new Error('Error al cerrar sesión')
+    }
+  } catch (error) {
+    console.error('Error al cerrar sesión:', error)
+    alert('Error al cerrar sesión')
+  }
 }
 
 onMounted(async () => {
