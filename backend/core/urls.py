@@ -18,11 +18,18 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework.routers import DefaultRouter
+from apps.tareas_app.views import TareaViewSet
+from apps.tableros_app.views import TableroViewSet
+
+router = DefaultRouter()
+router.register(r'tableros', TableroViewSet, basename='tablero')
+router.register(r'tareas', TareaViewSet, basename='tarea')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('apps.usuarios_app.urls')),
     path('api-auth/', include('rest_framework.urls')),
     path('api/notificaciones/', include('apps.notificaciones_app.urls')),
-    path('api/', include('apps.tableros_app.urls')),
+    path('api/', include(router.urls)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
