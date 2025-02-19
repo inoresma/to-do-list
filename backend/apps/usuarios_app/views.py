@@ -5,7 +5,11 @@ from django.contrib.auth import get_user_model, logout, login, authenticate
 from django.middleware.csrf import get_token
 from .serializers import UsuarioSerializer
 from rest_framework.permissions import AllowAny
+from apps.tareas_app.utils import verificar_tareas_por_vencer
+from apps.notificaciones_app.models import Notificacion
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 
+@extend_schema(tags=['auth'])
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = get_user_model().objects.all()
     serializer_class = UsuarioSerializer
@@ -15,6 +19,11 @@ class UsuarioViewSet(viewsets.ModelViewSet):
             return [AllowAny()]
         return [permissions.IsAuthenticated()]
     
+    @extend_schema(
+        summary="Obtener perfil actual",
+        description="Obtiene o actualiza la información del usuario autenticado",
+        methods=['GET', 'PATCH']
+    )
     @action(detail=False, methods=['get', 'patch'])
     def me(self, request):
         if request.method == 'GET':
@@ -32,13 +41,42 @@ class UsuarioViewSet(viewsets.ModelViewSet):
         user.set_password(self.request.data.get('password'))
         user.save()
 
+@extend_schema(
+    tags=['auth'],
+    summary="Cerrar sesión",
+    description="Cierra la sesión del usuario actual",
+    responses={200: OpenApiResponse(description="Logout exitoso")}
+)
 @api_view(['POST'])
 def logout_view(request):
-    if request.user.is_authenticated:
-        logout(request)
-        return Response({'message': 'Sesión cerrada correctamente'})
-    return Response({'message': 'No hay sesión activa'}, status=status.HTTP_400_BAD_REQUEST)
+    # Eliminar notificaciones leídas del usuario antes de cerrar sesión
+    Notificacion.objects.filter(
+        usuario=request.user,
+        leida=True
+    ).delete()
+    
+    logout(request)
+    return Response({'message': 'Logout exitoso'})
 
+@extend_schema(
+    tags=['auth'],
+    summary="Iniciar sesión",
+    description="Autentica al usuario y crea una sesión",
+    request={
+        'application/json': {
+            'type': 'object',
+            'properties': {
+                'username': {'type': 'string'},
+                'password': {'type': 'string', 'format': 'password'}
+            },
+            'required': ['username', 'password']
+        }
+    },
+    responses={
+        200: OpenApiResponse(description="Login exitoso"),
+        400: OpenApiResponse(description="Credenciales inválidas")
+    }
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])  # Permite acceso sin autenticación
 def login_view(request):
@@ -55,12 +93,14 @@ def login_view(request):
     
     if user is not None:
         login(request, user)
+        # Verificar tareas por vencer después del login
+        tareas_proximas = verificar_tareas_por_vencer(user)
+        
         return Response({
-            'detail': 'Login exitoso',
-            'csrftoken': get_token(request)
+            'message': 'Login exitoso',
+            'tareas_por_vencer': tareas_proximas
         })
     else:
-        return Response(
-            {'detail': 'Credenciales inválidas'}, 
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+        return Response({
+            'error': 'Credenciales inválidas'
+        }, status=status.HTTP_400_BAD_REQUEST)
