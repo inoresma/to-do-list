@@ -9,7 +9,11 @@ from rest_framework.permissions import AllowAny
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = get_user_model().objects.all()
     serializer_class = UsuarioSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_permissions(self):
+        if self.action == 'create':
+            return [AllowAny()]
+        return [permissions.IsAuthenticated()]
     
     @action(detail=False, methods=['get', 'patch'])
     def me(self, request):

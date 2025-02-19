@@ -1,5 +1,5 @@
 <template>
-  <nav v-if="$route.path !== '/login'" class="bg-white border-b border-secondary/10">
+  <nav v-if="!['login', 'registro'].includes($route.name)" class="bg-white border-b border-secondary/10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-16">
         <div class="flex">

@@ -3,7 +3,7 @@
     <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
       <div class="text-center">
         <h1 class="text-2xl font-bold text-primary">ToDoList</h1>
-        <h2 class="mt-4 text-xl font-semibold text-text">Iniciar Sesión</h2>
+        <h2 class="mt-4 text-xl font-semibold text-text">Crear Cuenta</h2>
       </div>
 
       <div class="mt-8">
@@ -16,6 +16,20 @@
                 type="text" 
                 name="username" 
                 id="username" 
+                required
+                class="block w-full rounded-md border-0 py-1.5 px-3 text-text shadow-sm ring-1 ring-inset ring-secondary/30 placeholder:text-secondary focus:ring-2 focus:ring-inset focus:ring-primary"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium text-text">Email</label>
+            <div class="mt-2">
+              <input 
+                v-model="formData.email"
+                type="email" 
+                name="email" 
+                id="email" 
                 required
                 class="block w-full rounded-md border-0 py-1.5 px-3 text-text shadow-sm ring-1 ring-inset ring-secondary/30 placeholder:text-secondary focus:ring-2 focus:ring-inset focus:ring-primary"
               />
@@ -46,23 +60,23 @@
               :disabled="loading"
               class="flex w-full justify-center rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span v-if="loading">Iniciando sesión...</span>
-              <span v-else>Iniciar Sesión</span>
+              <span v-if="loading">Creando cuenta...</span>
+              <span v-else>Crear Cuenta</span>
             </button>
           </div>
         </form>
 
         <p class="mt-8 text-center text-sm text-secondary">
-          ¿No tienes una cuenta?
-          <router-link to="/registro" class="font-semibold text-primary hover:text-accent">
-            Regístrate aquí
+          ¿Ya tienes una cuenta?
+          <router-link to="/login" class="font-semibold text-primary hover:text-accent">
+            Inicia sesión aquí
           </router-link>
         </p>
       </div>
     </div>
   </div>
 </template>
-  
+
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -73,6 +87,7 @@ const { obtenerUsuario } = useAuth()
 
 const formData = ref({
   username: '',
+  email: '',
   password: ''
 })
 
@@ -88,7 +103,7 @@ const handleSubmit = async () => {
       .find(row => row.startsWith('csrftoken='))
       ?.split('=')[1];
 
-    const response = await fetch('/api/login/', {
+    const response = await fetch('/api/usuarios/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -100,7 +115,25 @@ const handleSubmit = async () => {
 
     if (!response.ok) {
       const data = await response.json()
-      throw new Error(data.detail || 'Error al iniciar sesión')
+      throw new Error(Object.values(data)[0] || 'Error al crear la cuenta')
+    }
+
+    // Iniciar sesión automáticamente después del registro
+    const loginResponse = await fetch('/api/login/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken || '',
+      },
+      body: JSON.stringify({
+        username: formData.value.username,
+        password: formData.value.password
+      }),
+      credentials: 'include'
+    })
+
+    if (!loginResponse.ok) {
+      throw new Error('Error al iniciar sesión automáticamente')
     }
 
     await obtenerUsuario()
@@ -111,5 +144,4 @@ const handleSubmit = async () => {
     loading.value = false
   }
 }
-</script>
-  
+</script> 
