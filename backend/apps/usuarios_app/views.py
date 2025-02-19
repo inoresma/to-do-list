@@ -7,7 +7,9 @@ from .serializers import UsuarioSerializer
 from rest_framework.permissions import AllowAny
 from apps.tareas_app.utils import verificar_tareas_por_vencer
 from apps.notificaciones_app.models import Notificacion
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 
+@extend_schema(tags=['auth'])
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = get_user_model().objects.all()
     serializer_class = UsuarioSerializer
@@ -17,6 +19,11 @@ class UsuarioViewSet(viewsets.ModelViewSet):
             return [AllowAny()]
         return [permissions.IsAuthenticated()]
     
+    @extend_schema(
+        summary="Obtener perfil actual",
+        description="Obtiene o actualiza la información del usuario autenticado",
+        methods=['GET', 'PATCH']
+    )
     @action(detail=False, methods=['get', 'patch'])
     def me(self, request):
         if request.method == 'GET':
@@ -34,6 +41,12 @@ class UsuarioViewSet(viewsets.ModelViewSet):
         user.set_password(self.request.data.get('password'))
         user.save()
 
+@extend_schema(
+    tags=['auth'],
+    summary="Cerrar sesión",
+    description="Cierra la sesión del usuario actual",
+    responses={200: OpenApiResponse(description="Logout exitoso")}
+)
 @api_view(['POST'])
 def logout_view(request):
     # Eliminar notificaciones leídas del usuario antes de cerrar sesión
@@ -43,8 +56,27 @@ def logout_view(request):
     ).delete()
     
     logout(request)
-    return Response({'message': 'Sesión cerrada correctamente'})
+    return Response({'message': 'Logout exitoso'})
 
+@extend_schema(
+    tags=['auth'],
+    summary="Iniciar sesión",
+    description="Autentica al usuario y crea una sesión",
+    request={
+        'application/json': {
+            'type': 'object',
+            'properties': {
+                'username': {'type': 'string'},
+                'password': {'type': 'string', 'format': 'password'}
+            },
+            'required': ['username', 'password']
+        }
+    },
+    responses={
+        200: OpenApiResponse(description="Login exitoso"),
+        400: OpenApiResponse(description="Credenciales inválidas")
+    }
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])  # Permite acceso sin autenticación
 def login_view(request):

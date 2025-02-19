@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'apps.tableros_app',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -148,6 +149,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 CSRF_TRUSTED_ORIGINS = ['http://localhost:5173']  # Ajusta según tu dominio de desarrollo
@@ -157,3 +159,17 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'ToDoList API',
+    'DESCRIPTION': 'API para gestión de tareas y tableros',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'TAGS': [
+        {'name': 'auth', 'description': 'Operaciones de autenticación'},
+        {'name': 'tareas', 'description': 'Gestión de tareas'},
+        {'name': 'tableros', 'description': 'Gestión de tableros'},
+        {'name': 'notificaciones', 'description': 'Sistema de notificaciones'},
+    ]
+}

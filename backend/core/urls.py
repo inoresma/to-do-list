@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 from apps.tareas_app.views import TareaViewSet
 from apps.tableros_app.views import TableroViewSet
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 router = DefaultRouter()
 router.register(r'tableros', TableroViewSet, basename='tablero')
@@ -32,4 +33,8 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
     path('api/notificaciones/', include('apps.notificaciones_app.urls')),
     path('api/', include(router.urls)),
+    # Documentación de API
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
