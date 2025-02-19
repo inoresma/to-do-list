@@ -73,6 +73,11 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
+  // Si el usuario aún no se ha intentado cargar, obtenerlo
+  if (authStore.cargando) {
+    await authStore.obtenerUsuario()
+  }
+
   // Actualiza el titulo y el icono de la pagina
   if (to.meta.title && to.meta.icon) {
     updateDocumentMeta(to.meta.title, to.meta.icon)
