@@ -5,6 +5,8 @@ from django.contrib.auth import get_user_model, logout, login, authenticate
 from django.middleware.csrf import get_token
 from .serializers import UsuarioSerializer
 from rest_framework.permissions import AllowAny
+from apps.tareas_app.utils import verificar_tareas_por_vencer
+from apps.notificaciones_app.models import Notificacion
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = get_user_model().objects.all()
@@ -34,10 +36,14 @@ class UsuarioViewSet(viewsets.ModelViewSet):
 
 @api_view(['POST'])
 def logout_view(request):
-    if request.user.is_authenticated:
-        logout(request)
-        return Response({'message': 'Sesión cerrada correctamente'})
-    return Response({'message': 'No hay sesión activa'}, status=status.HTTP_400_BAD_REQUEST)
+    # Eliminar notificaciones leídas del usuario antes de cerrar sesión
+    Notificacion.objects.filter(
+        usuario=request.user,
+        leida=True
+    ).delete()
+    
+    logout(request)
+    return Response({'message': 'Sesión cerrada correctamente'})
 
 @api_view(['POST'])
 @permission_classes([AllowAny])  # Permite acceso sin autenticación
@@ -55,12 +61,14 @@ def login_view(request):
     
     if user is not None:
         login(request, user)
+        # Verificar tareas por vencer después del login
+        tareas_proximas = verificar_tareas_por_vencer(user)
+        
         return Response({
-            'detail': 'Login exitoso',
-            'csrftoken': get_token(request)
+            'message': 'Login exitoso',
+            'tareas_por_vencer': tareas_proximas
         })
     else:
-        return Response(
-            {'detail': 'Credenciales inválidas'}, 
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+        return Response({
+            'error': 'Credenciales inválidas'
+        }, status=status.HTTP_400_BAD_REQUEST)

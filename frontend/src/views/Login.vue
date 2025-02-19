@@ -1,6 +1,16 @@
 <template>
   <div class="min-h-screen bg-background flex items-center justify-center px-4">
     <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
+      <div class="mb-6">
+        <router-link 
+          to="/"
+          class="text-secondary hover:text-primary flex items-center space-x-1"
+        >
+          <ArrowLeftIcon class="h-5 w-5" />
+          <span>Volver al inicio</span>
+        </router-link>
+      </div>
+
       <div class="text-center">
         <h1 class="text-2xl font-bold text-primary">ToDoList</h1>
         <h2 class="mt-4 text-xl font-semibold text-text">Iniciar Sesión</h2>
@@ -67,6 +77,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
+import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
 const { obtenerUsuario } = useAuth()

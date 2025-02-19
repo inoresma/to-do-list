@@ -54,14 +54,14 @@
                   <div 
                     v-for="notificacion in notificaciones" 
                     :key="notificacion.id"
-                    class="px-4 py-3 hover:bg-background cursor-pointer"
-                    :class="{ 'bg-background/50': !notificacion.leida }"
-                    @click="marcarComoLeida(notificacion.id)"
+                    @click="manejarClickNotificacion(notificacion)"
+                    class="p-4 hover:bg-gray-50 cursor-pointer"
                   >
                     <div class="flex items-start space-x-3">
                       <div class="flex-shrink-0">
                         <CheckCircleIcon v-if="notificacion.tipo === 'tarea_completada'" class="h-6 w-6 text-green-500" />
                         <ClockIcon v-else-if="notificacion.tipo === 'fecha_vencimiento'" class="h-6 w-6 text-yellow-500" />
+                        <ExclamationCircleIcon v-else-if="notificacion.tipo === 'tarea_vencida'" class="h-6 w-6 text-red-500" />
                         <ChatBubbleLeftIcon v-else-if="notificacion.tipo === 'comentario_nuevo'" class="h-6 w-6 text-blue-500" />
                         <DocumentIcon v-else class="h-6 w-6 text-primary" />
                       </div>
@@ -69,6 +69,9 @@
                       <div class="flex-1 min-w-0">
                         <p class="text-sm font-medium text-text">
                           {{ notificacion.mensaje }}
+                        </p>
+                        <p v-if="notificacion.tarea?.tablero_info" class="text-xs text-primary mt-1">
+                          {{ notificacion.tarea.tablero_info.nombre }}
                         </p>
                         <p class="text-xs text-secondary mt-1">
                           {{ formatearFecha(notificacion.fecha_creacion) }}
@@ -125,9 +128,6 @@
   </nav>
 </template>
 
-
-
-
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { 
@@ -137,31 +137,19 @@ import {
   ClockIcon,
   ChatBubbleLeftIcon,
   DocumentIcon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  ExclamationCircleIcon
 } from '@heroicons/vue/24/outline'
 import { useAuth } from '@/composables/useAuth'
 import { useRouter } from 'vue-router'
+import { formatearFecha } from '@/utils/formatters'
 
-const { usuario, cargando, error, obtenerUsuario } = useAuth()
+const { usuario, cargando, error, obtenerUsuario, obtenerNotificacionesNoLeidas } = useAuth()
 const notificacionesNoLeidas = ref(0)
 const notificaciones = ref([])
 const cargandoNotificaciones = ref(false)
 const mostrarNotificaciones = ref(false)
 const router = useRouter()
-
-const obtenerNotificacionesNoLeidas = async () => {
-  try {
-    const response = await fetch('/api/notificaciones/no-leidas/', {
-      credentials: 'include'
-    })
-    if (response.ok) {
-      const data = await response.json()
-      notificacionesNoLeidas.value = data.count
-    }
-  } catch (error) {
-    console.error('Error al obtener notificaciones:', error)
-  }
-}
 
 const obtenerNotificaciones = async () => {
   try {
@@ -180,34 +168,37 @@ const obtenerNotificaciones = async () => {
   }
 }
 
-const marcarComoLeida = async (id) => {
+const manejarClickNotificacion = async (notificacion) => {
   try {
-    const response = await fetch(`/api/notificaciones/${id}/marcar-leida/`, {
+    // Marcar como leída la notificación
+    const response = await fetch(`/api/notificaciones/${notificacion.id}/marcar-leida/`, {
       method: 'POST',
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-      }
+        'X-CSRFToken': document.cookie.split('; ')
+          .find(row => row.startsWith('csrftoken='))
+          ?.split('=')[1] || '',
+      },
+      credentials: 'include'
     })
-    if (response.ok) {
-      const index = notificaciones.value.findIndex(n => n.id === id)
-      if (index !== -1) {
-        notificaciones.value[index].leida = true
-      }
-      await obtenerNotificacionesNoLeidas()
+
+    if (!response.ok) {
+      throw new Error('Error al marcar la notificación como leída')
+    }
+
+    // Actualizar contador de notificaciones
+    await obtenerNotificacionesNoLeidas()
+    
+    // Cerrar el menú de notificaciones
+    mostrarNotificaciones.value = false
+
+    // Redirigir al tablero correspondiente
+    if (notificacion.tarea && notificacion.tarea.tablero) {
+      await router.push(`/tableros/${notificacion.tarea.tablero}`)
     }
   } catch (error) {
-    console.error('Error al marcar notificación como leída:', error)
+    console.error('Error:', error)
   }
-}
-
-const formatearFecha = (fecha) => {
-  return new Date(fecha).toLocaleString('es-ES', {
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
 }
 
 const cerrarSesion = async () => {
@@ -227,7 +218,7 @@ const cerrarSesion = async () => {
     
     if (response.ok) {
       usuario.value = null
-      router.push('/login')
+      router.push('/') // Cambiamos /login por /
     } else {
       throw new Error('Error al cerrar sesión')
     }
@@ -236,11 +227,16 @@ const cerrarSesion = async () => {
     alert('Error al cerrar sesión')
   }
 }
-
 onMounted(async () => {
   await obtenerUsuario()
   if (usuario.value) {
-    await obtenerNotificacionesNoLeidas()
+    notificacionesNoLeidas.value = await obtenerNotificacionesNoLeidas()
+  }
+})
+
+watch(() => router.currentRoute.value.path, async () => {
+  if (usuario.value) {
+    notificacionesNoLeidas.value = await obtenerNotificacionesNoLeidas()
   }
 })
 

@@ -27,8 +27,7 @@ def listar_notificaciones(request):
 def marcar_notificacion_leida(request, pk):
     try:
         notificacion = Notificacion.objects.get(pk=pk, usuario=request.user)
-        notificacion.leida = True
-        notificacion.save()
+        notificacion.delete()
         return Response(status=status.HTTP_200_OK)
     except Notificacion.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)

@@ -4,10 +4,9 @@ from apps.tareas_app.models import Tarea
 
 class Notificacion(models.Model):
     TIPO_CHOICES = [
-        ('tarea_asignada', 'Tarea Asignada'),
         ('tarea_completada', 'Tarea Completada'),
-        ('comentario_nuevo', 'Nuevo Comentario'),
         ('fecha_vencimiento', 'Fecha de Vencimiento Próxima'),
+        ('tarea_vencida', 'Tarea Vencida'),
     ]
     
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='notificaciones')
