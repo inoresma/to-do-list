@@ -1,0 +1,23 @@
+# Django y DRF
+Django==5.1.4
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+
+# Base de datos
+psycopg2-binary==2.9.9
+
+# Documentación API
+drf-spectacular==0.27.0
+
+# Manejo de imágenes
+Pillow==10.1.0
+
+# Utilidades
+python-dotenv==1.0.0
+django-filter==23.5
+
+# Servidor WSGI
+gunicorn==21.2.0
+
+# Desarrollo y debugging
+django-debug-toolbar==4.2.0 
