@@ -13,7 +13,7 @@
               class="text-text hover:text-primary border-transparent hover:border-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
               :class="{ 'border-primary text-primary': $route.path === '/tareas' }"
             >
-              Tareas
+              Tableros
             </router-link>
           </div>
         </div>
