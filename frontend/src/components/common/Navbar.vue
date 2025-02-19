@@ -9,7 +9,7 @@
           <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
             <router-link 
               v-if="usuario"
-              to="/tareas" 
+              to="/tableros" 
               class="text-text hover:text-primary border-transparent hover:border-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
               :class="{ 'border-primary text-primary': $route.path === '/tareas' }"
             >

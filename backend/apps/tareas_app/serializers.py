@@ -6,5 +6,5 @@ class TareaSerializer(serializers.ModelSerializer):
         model = Tarea
         fields = ['id', 'titulo', 'descripcion', 'fecha_creacion', 
                  'fecha_vencimiento', 'prioridad', 'estado', 'usuario', 
-                 'categoria', 'completada']
-        read_only_fields = ['fecha_creacion'] 
+                 'tablero']
+        read_only_fields = ['fecha_creacion', 'usuario'] 

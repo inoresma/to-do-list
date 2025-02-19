@@ -1,6 +1,7 @@
 from django.db import models
 from apps.usuarios_app.models import Usuario
 from apps.categorias_app.models import Categoria
+from apps.tableros_app.models import Tablero
 
 class Tarea(models.Model):
     PRIORIDAD_CHOICES = [
@@ -13,7 +14,6 @@ class Tarea(models.Model):
         ('pendiente', 'Pendiente'),
         ('en_progreso', 'En Progreso'),
         ('completada', 'Completada'),
-        ('cancelada', 'Cancelada'),
     ]
     
     titulo = models.CharField(max_length=200)
@@ -24,7 +24,7 @@ class Tarea(models.Model):
     estado = models.CharField(max_length=15, choices=ESTADO_CHOICES, default='pendiente')
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='tareas')
     categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True, blank=True, related_name='tareas')
-    completada = models.BooleanField(default=False)
+    tablero = models.ForeignKey(Tablero, on_delete=models.CASCADE, related_name='tareas')
     
     class Meta:
         verbose_name = 'Tarea'
