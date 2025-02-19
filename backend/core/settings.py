@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'apps.notificaciones_app.apps.NotificacionesAppConfig',
     'rest_framework',
     'corsheaders',
-    ]
+    'apps.tableros_app',
+]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -149,9 +150,7 @@ REST_FRAMEWORK = {
     ],
 }
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",
-]
+CSRF_TRUSTED_ORIGINS = ['http://localhost:5173']  # Ajusta según tu dominio de desarrollo
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",

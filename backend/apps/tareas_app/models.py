@@ -25,6 +25,10 @@ class Tarea(models.Model):
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='tareas')
     categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True, blank=True, related_name='tareas')
     completada = models.BooleanField(default=False)
+    tablero = models.ForeignKey('tableros_app.Tablero', 
+                              on_delete=models.CASCADE, 
+                              related_name='tareas', 
+                              null=True)
     
     class Meta:
         verbose_name = 'Tarea'

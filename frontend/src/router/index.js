@@ -21,6 +21,16 @@ const routes = [
     path: '/registro',
     name: 'registro',
     component: () => import('../views/Register.vue')
+  },
+  {
+    path: '/tableros',
+    name: 'tableros',
+    component: () => import('../views/Tableros.vue')
+  },
+  {
+    path: '/tableros/:id',
+    name: 'tablero-detalle',
+    component: () => import('../views/TableroDetalle.vue')
   }
 ]
 
