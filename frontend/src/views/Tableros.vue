@@ -361,5 +361,7 @@ const eliminarTablero = async () => {
   }
 }
 
-onMounted(obtenerTableros)
+onMounted(async () => {
+  await obtenerTableros()
+})
 </script> 

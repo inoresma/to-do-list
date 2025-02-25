@@ -1,7 +1,13 @@
 <template>
   <div class="min-h-screen bg-background px-4 py-4">
     <div class="max-w-7xl mx-auto">
-      <div v-if="tablero" class="space-y-6">
+      <!-- Estado de carga -->
+      <div v-if="cargando" class="text-center py-12">
+        <div class="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
+        <p class="mt-4 text-secondary">Cargando tablero...</p>
+      </div>
+
+      <div v-else-if="tablero" class="space-y-6">
         <!-- Encabezado -->
         <div class="flex justify-between items-center">
           <div class="flex items-center space-x-3">
@@ -250,6 +256,7 @@ import Modal from '@/components/common/Modal.vue'
 const route = useRoute()
 const tablero = ref(null)
 const tareas = ref([])
+const cargando = ref(true)
 const loading = ref(false)
 const mostrarModalTarea = ref(false)
 const modoEdicion = ref(false)
@@ -290,14 +297,18 @@ const obtenerIcono = (nombre) => {
 
 const obtenerTablero = async () => {
   try {
+    cargando.value = true
     const response = await fetch(`/api/tableros/${route.params.id}/`, {
       credentials: 'include'
     })
     if (response.ok) {
       tablero.value = await response.json()
+      await obtenerTareas()
     }
   } catch (error) {
     console.error('Error al obtener tablero:', error)
+  } finally {
+    cargando.value = false
   }
 }
 
@@ -309,7 +320,6 @@ const obtenerTareas = async () => {
     if (response.ok) {
       const data = await response.json()
       tareas.value = data
-      console.log('Tareas obtenidas:', data) // Para depuración
     }
   } catch (error) {
     console.error('Error al obtener tareas:', error)
@@ -481,6 +491,5 @@ const onDragChange = async (e, columna) => {
 
 onMounted(() => {
   obtenerTablero()
-  obtenerTareas()
 })
 </script> 
