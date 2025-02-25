@@ -12,8 +12,14 @@
         </button>
       </div>
 
+      <!-- Estado de carga -->
+      <div v-if="cargando" class="text-center py-12">
+        <div class="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
+        <p class="mt-4 text-secondary">Cargando tableros...</p>
+      </div>
+
       <!-- Estado vacío -->
-      <div v-if="!tableros.length" class="text-center py-12">
+      <div v-else-if="!tableros.length" class="text-center py-12">
         <div class="relative">
           <ClipboardDocumentListIcon class="mx-auto h-48 w-48 text-secondary/20" />
           <div class="mt-4">
@@ -214,6 +220,7 @@ const formTablero = ref({
 })
 const loading = ref(false)
 const error = ref(null)
+const cargando = ref(true)
 
 const mostrarModalEliminar = ref(false)
 const tableroEliminar = ref(null)
@@ -236,6 +243,7 @@ const obtenerIcono = (nombre) => {
 
 const obtenerTableros = async () => {
   try {
+    cargando.value = true
     const response = await fetch('/api/tableros/', {
       credentials: 'include'
     })
@@ -244,6 +252,8 @@ const obtenerTableros = async () => {
     }
   } catch (error) {
     console.error('Error al obtener tableros:', error)
+  } finally {
+    cargando.value = false
   }
 }
 
