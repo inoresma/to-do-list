@@ -349,11 +349,15 @@ const guardarTarea = async () => {
       estado: formTarea.value.estado,
       tablero: Number(route.params.id)
     }
-    
-    console.log('Enviando datos:', datos)
 
-    const response = await fetch('/api/tareas/', {
-      method: 'POST',
+    const url = modoEdicion.value 
+      ? `/api/tareas/${tareaEditando.value.id}/`
+      : '/api/tareas/'
+    
+    const method = modoEdicion.value ? 'PUT' : 'POST'
+
+    const response = await fetch(url, {
+      method,
       headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': csrfToken || '',
@@ -363,8 +367,6 @@ const guardarTarea = async () => {
     })
 
     const responseText = await response.text()
-    console.log('Respuesta del servidor:', responseText)
-
     let data
     try {
       data = JSON.parse(responseText)
