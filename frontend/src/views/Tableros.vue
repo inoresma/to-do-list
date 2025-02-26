@@ -200,6 +200,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { 
   PlusIcon, ClipboardDocumentListIcon, PencilIcon,
   TrashIcon,
@@ -226,6 +227,8 @@ const mostrarModalEliminar = ref(false)
 const tableroEliminar = ref(null)
 const loadingEliminar = ref(false)
 
+const router = useRouter()
+
 const iconosDisponibles = [
   { valor: 'clipboard', componente: ClipboardDocumentListIcon },
   { valor: 'calendar', componente: CalendarIcon },
@@ -244,14 +247,28 @@ const obtenerIcono = (nombre) => {
 const obtenerTableros = async () => {
   try {
     cargando.value = true
+    
     const response = await fetch('/api/tableros/', {
-      credentials: 'include'
+      credentials: 'include',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
     })
-    if (response.ok) {
-      tableros.value = await response.json()
+    
+    if (!response.ok) {
+      throw new Error('Error al obtener tableros')
     }
-  } catch (error) {
-    console.error('Error al obtener tableros:', error)
+    
+    const data = await response.json()
+    tableros.value = data
+    
+    if (data) {
+      localStorage.setItem('tableros_cache', JSON.stringify(data))
+    }
+  } catch (e) {
+    console.error('Error:', e)
+    error.value = e.message
+    tableros.value = []
   } finally {
     cargando.value = false
   }
@@ -362,6 +379,24 @@ const eliminarTablero = async () => {
 }
 
 onMounted(async () => {
-  await obtenerTableros()
+  try {
+    const cachedTableros = localStorage.getItem('tableros_cache')
+    if (cachedTableros) {
+      try {
+        const parsed = JSON.parse(cachedTableros)
+        if (parsed && Array.isArray(parsed)) {
+          tableros.value = parsed
+        }
+      } catch (e) {
+        console.error('Error al parsear caché:', e)
+        localStorage.removeItem('tableros_cache')
+      }
+    }
+    
+    await obtenerTableros()
+  } catch (e) {
+    console.error('Error en onMounted:', e)
+    cargando.value = false
+  }
 })
 </script> 

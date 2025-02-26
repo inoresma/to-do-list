@@ -25,13 +25,32 @@ export function useAuth() {
     try {
       cargando.value = true
       error.value = null
+      
+      // Simplificar - sólo obtener del servidor para depuración
       const response = await fetch('/api/usuarios/me/', {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
       })
-      if (!response.ok) throw new Error('No se pudo obtener la información del usuario')
-      usuario.value = await response.json()
+      
+      if (!response.ok) {
+        usuario.value = null
+        localStorage.removeItem('usuario')
+        throw new Error('No se pudo obtener la información del usuario')
+      }
+      
+      const data = await response.json()
+      if (data && data.id) {
+        usuario.value = data
+        localStorage.setItem('usuario', JSON.stringify(data))
+      } else {
+        usuario.value = null
+        localStorage.removeItem('usuario')
+      }
     } catch (e) {
       error.value = e.message
+      usuario.value = null
     } finally {
       cargando.value = false
     }
