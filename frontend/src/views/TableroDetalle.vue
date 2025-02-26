@@ -318,7 +318,10 @@ import {
   PlusIcon, PencilIcon, TrashIcon, ClipboardDocumentListIcon,
   CalendarIcon, StarIcon, HeartIcon, HomeIcon,
   BookOpenIcon, BriefcaseIcon, AcademicCapIcon,
-  ArrowUturnLeftIcon
+  ArrowUturnLeftIcon,
+  BellIcon, 
+  UserCircleIcon,
+  ArrowRightOnRectangleIcon
 } from '@heroicons/vue/24/outline'
 import draggable from 'vuedraggable'
 
@@ -337,7 +340,10 @@ export default {
     BookOpenIcon, 
     BriefcaseIcon, 
     AcademicCapIcon,
-    ArrowUturnLeftIcon
+    ArrowUturnLeftIcon,
+    BellIcon, 
+    UserCircleIcon,
+    ArrowRightOnRectangleIcon
   },
   setup() {
     const route = useRoute();

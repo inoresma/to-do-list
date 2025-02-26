@@ -1,5 +1,6 @@
 from django.utils import timezone
 from datetime import timedelta
+from django.db.models import Q
 from apps.notificaciones_app.models import Notificacion
 
 def verificar_tareas_por_vencer(usuario):
@@ -14,7 +15,11 @@ def verificar_tareas_por_vencer(usuario):
         fecha_vencimiento__range=(tiempo_actual, tiempo_limite),
         estado__in=['pendiente', 'en_progreso']
     ).exclude(
-        notificaciones__tipo='fecha_vencimiento'
+        id__in=Notificacion.objects.filter(
+            usuario=usuario,
+            tipo='fecha_vencimiento',
+            leida=False
+        ).values_list('tarea_id', flat=True)
     )
     
     # Verificar tareas vencidas no completadas (solo las que no tienen notificación activa)
@@ -23,7 +28,11 @@ def verificar_tareas_por_vencer(usuario):
         fecha_vencimiento__lt=tiempo_actual,
         estado__in=['pendiente', 'en_progreso']
     ).exclude(
-        notificaciones__tipo='tarea_vencida'
+        id__in=Notificacion.objects.filter(
+            usuario=usuario,
+            tipo='tarea_vencida',
+            leida=False
+        ).values_list('tarea_id', flat=True)
     )
     
     # Crear notificaciones para tareas próximas a vencer

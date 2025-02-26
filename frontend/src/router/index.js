@@ -74,7 +74,7 @@ const router = createRouter({
   ]
 })
 
-// Antes de navegar a la pagina - Simplificado para depuración
+// Antes de navegar a la pagina
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
@@ -89,7 +89,7 @@ router.beforeEach(async (to, from, next) => {
       updateDocumentMeta(to.meta.title, to.meta.icon)
     }
 
-    // Actualiza el titulo y el icono de la pagina para el tablero-detalle
+    // Actualiza el titulo para el tablero-detalle
     if (to.name === 'tablero-detalle' && to.params.id) {
       try {
         const response = await fetch(`/api/tableros/${to.params.id}/`, {
@@ -97,7 +97,7 @@ router.beforeEach(async (to, from, next) => {
         })
         if (response.ok) {
           const tablero = await response.json()
-          updateDocumentMeta(`${tablero.nombre} | ToDoList`, '📊')
+          document.title = `${tablero.nombre} | ToDoList`
         }
       } catch (error) {
         console.error('Error al obtener tablero:', error)
@@ -120,7 +120,7 @@ router.beforeEach(async (to, from, next) => {
     next()
   } catch (error) {
     console.error('Error en router.beforeEach:', error)
-    next() // Asegurarse de que siempre se llame a next()
+    next()
   }
 })
 
