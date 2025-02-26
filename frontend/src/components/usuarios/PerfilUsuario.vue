@@ -13,17 +13,19 @@
         <!-- Sección de Foto de Perfil -->
         <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
           <div class="shrink-0">
-            <img 
-              v-if="formData.foto_perfil" 
-              :src="formData.foto_perfil" 
-              class="h-20 w-20 sm:h-24 sm:w-24 rounded-full object-cover border-4 border-white shadow-lg" 
-              alt="Foto de perfil" 
-            />
-            <UserCircleIcon 
-              v-else 
-              class="h-20 w-20 sm:h-24 sm:w-24 text-secondary rounded-full bg-background p-1" 
-              aria-hidden="true" 
-            />
+            <div class="h-20 w-20 sm:h-24 sm:w-24 rounded-full overflow-hidden bg-background flex items-center justify-center">
+              <img 
+                v-if="formData.foto_perfil && typeof formData.foto_perfil === 'string'" 
+                :src="formData.foto_perfil" 
+                class="h-full w-full object-cover" 
+                alt="Foto de perfil" 
+              />
+              <UserCircleIcon 
+                v-else 
+                class="h-full w-full text-primary" 
+                aria-hidden="true" 
+              />
+            </div>
           </div>
           <div class="w-full sm:w-auto">
             <label class="block">
@@ -172,24 +174,41 @@ const formData = ref({
 })
 
 const originalData = ref(null)
+const cargando = ref(true)
+const error = ref(null)
 
 onMounted(async () => {
   try {
-    const response = await fetch('/api/usuarios/me/')
+    cargando.value = true
+    const response = await fetch('/api/usuarios/me/', {
+      credentials: 'include'
+    })
     if (response.ok) {
       const data = await response.json()
-      formData.value = { ...data }
-      originalData.value = { ...data }
+      // Asegurarse de que la foto_perfil sea una URL válida
+      formData.value = {
+        ...data,
+        foto_perfil: data.foto_perfil || null
+      }
+      originalData.value = { ...formData.value }
     }
   } catch (error) {
     console.error('Error al cargar datos del usuario:', error)
+  } finally {
+    cargando.value = false
   }
 })
 
 const handleFileChange = (event) => {
   const file = event.target.files[0]
   if (file) {
-    formData.value.foto_perfil = file
+    // Crear una URL temporal para previsualizar la imagen
+    const imageUrl = URL.createObjectURL(file)
+    formData.value = {
+      ...formData.value,
+      foto_perfil: imageUrl,
+      _foto_perfil_file: file // Guardamos el archivo separado
+    }
   }
 }
 
@@ -197,14 +216,21 @@ const handleSubmit = async (event) => {
   event.preventDefault()
   
   try {
+    cargando.value = true
+    error.value = null
+    
     const form = new FormData()
-    for (const [key, value] of Object.entries(formData.value)) {
-      if (value !== null && value !== undefined) {
-        if (key === 'foto_perfil' && typeof value === 'string') {
-          continue
-        }
+    
+    // Agregar todos los campos excepto foto_perfil
+    Object.entries(formData.value).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && key !== 'foto_perfil' && !key.startsWith('_')) {
         form.append(key, value)
       }
+    })
+
+    // Agregar la foto solo si hay un nuevo archivo
+    if (formData.value._foto_perfil_file) {
+      form.append('foto_perfil', formData.value._foto_perfil_file)
     }
 
     const csrfToken = document.cookie.split('; ')
@@ -220,23 +246,39 @@ const handleSubmit = async (event) => {
       }
     })
 
+    const data = await response.json()
+
     if (!response.ok) {
-      const contentType = response.headers.get('content-type')
-      if (contentType && contentType.includes('application/json')) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Error al actualizar el perfil')
+      // Manejar diferentes tipos de errores
+      if (data.username) {
+        throw new Error(`Nombre de usuario: ${data.username[0]}`)
+      } else if (data.email) {
+        throw new Error(`Email: ${data.email[0]}`)
+      } else if (data.detail) {
+        throw new Error(data.detail)
       } else {
-        throw new Error('Error en la respuesta del servidor')
+        throw new Error('Error al actualizar el perfil')
       }
     }
 
-    const data = await response.json()
-    formData.value = { ...data }
-    originalData.value = { ...data }
+    formData.value = {
+      ...data,
+      foto_perfil: data.foto_perfil || null
+    }
+    originalData.value = { ...formData.value }
+    
+    // Limpiar la URL temporal si existe
+    if (formData.value._foto_perfil_file) {
+      URL.revokeObjectURL(formData.value.foto_perfil)
+      delete formData.value._foto_perfil_file
+    }
+    
     alert('Perfil actualizado correctamente')
   } catch (error) {
     console.error('Error al actualizar perfil:', error)
-    alert(error.message || 'Error al actualizar el perfil')
+    alert(error.message)
+  } finally {
+    cargando.value = false
   }
 }
 

@@ -111,7 +111,7 @@ const handleSubmit = async () => {
 
     if (!response.ok) {
       const data = await response.json()
-      throw new Error(data.detail || 'Error al iniciar sesión')
+      throw new Error(data.detail || 'Credenciales incorrectas. El usuario o contraseña no son válidos.')
     }
 
     await obtenerUsuario()

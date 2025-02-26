@@ -4,6 +4,7 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from .models import Tablero
 from .serializers import TableroSerializer
+from rest_framework.decorators import api_view
 
 # Create your views here.
 
@@ -12,12 +13,17 @@ class TableroViewSet(viewsets.ModelViewSet):
     serializer_class = TableroSerializer
     permission_classes = [permissions.IsAuthenticated]
     
+    def get_queryset(self):
+        return Tablero.objects.filter(usuario=self.request.user)
+    
     @extend_schema(
         summary="Listar tableros",
         description="Obtiene la lista de tableros del usuario autenticado"
     )
     def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
     
     @extend_schema(
         summary="Crear tablero",
@@ -47,8 +53,5 @@ class TableroViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
 
-    def get_queryset(self):
-        return Tablero.objects.filter(usuario=self.request.user)
-    
     def perform_create(self, serializer):
         serializer.save(usuario=self.request.user)

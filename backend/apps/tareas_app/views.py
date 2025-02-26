@@ -20,7 +20,7 @@ class TareaViewSet(viewsets.ModelViewSet):
         queryset = Tarea.objects.filter(usuario=self.request.user)
         tablero_id = self.request.query_params.get('tablero', None)
         if tablero_id is not None:
-            queryset = queryset.filter(tablero_id=tablero_id)
+            queryset = queryset.filter(tablero_id=tablero_id).select_related('tablero')
         return queryset
     
     @extend_schema(

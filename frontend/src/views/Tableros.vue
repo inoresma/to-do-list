@@ -12,8 +12,14 @@
         </button>
       </div>
 
+      <!-- Estado de carga -->
+      <div v-if="cargando" class="text-center py-12">
+        <div class="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
+        <p class="mt-4 text-secondary">Cargando tableros...</p>
+      </div>
+
       <!-- Estado vacío -->
-      <div v-if="!tableros.length" class="text-center py-12">
+      <div v-else-if="!tableros.length" class="text-center py-12">
         <div class="relative">
           <ClipboardDocumentListIcon class="mx-auto h-48 w-48 text-secondary/20" />
           <div class="mt-4">
@@ -194,6 +200,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { 
   PlusIcon, ClipboardDocumentListIcon, PencilIcon,
   TrashIcon,
@@ -214,10 +221,13 @@ const formTablero = ref({
 })
 const loading = ref(false)
 const error = ref(null)
+const cargando = ref(true)
 
 const mostrarModalEliminar = ref(false)
 const tableroEliminar = ref(null)
 const loadingEliminar = ref(false)
+
+const router = useRouter()
 
 const iconosDisponibles = [
   { valor: 'clipboard', componente: ClipboardDocumentListIcon },
@@ -236,14 +246,31 @@ const obtenerIcono = (nombre) => {
 
 const obtenerTableros = async () => {
   try {
+    cargando.value = true
+    
     const response = await fetch('/api/tableros/', {
-      credentials: 'include'
+      credentials: 'include',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
     })
-    if (response.ok) {
-      tableros.value = await response.json()
+    
+    if (!response.ok) {
+      throw new Error('Error al obtener tableros')
     }
-  } catch (error) {
-    console.error('Error al obtener tableros:', error)
+    
+    const data = await response.json()
+    tableros.value = data
+    
+    if (data) {
+      localStorage.setItem('tableros_cache', JSON.stringify(data))
+    }
+  } catch (e) {
+    console.error('Error:', e)
+    error.value = e.message
+    tableros.value = []
+  } finally {
+    cargando.value = false
   }
 }
 
@@ -351,5 +378,25 @@ const eliminarTablero = async () => {
   }
 }
 
-onMounted(obtenerTableros)
+onMounted(async () => {
+  try {
+    const cachedTableros = localStorage.getItem('tableros_cache')
+    if (cachedTableros) {
+      try {
+        const parsed = JSON.parse(cachedTableros)
+        if (parsed && Array.isArray(parsed)) {
+          tableros.value = parsed
+        }
+      } catch (e) {
+        console.error('Error al parsear caché:', e)
+        localStorage.removeItem('tableros_cache')
+      }
+    }
+    
+    await obtenerTableros()
+  } catch (e) {
+    console.error('Error en onMounted:', e)
+    cargando.value = false
+  }
+})
 </script> 

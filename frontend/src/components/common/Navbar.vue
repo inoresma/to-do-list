@@ -89,17 +89,19 @@
                 class="flex items-center space-x-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full p-1"
                 :class="{ 'bg-background': $route.path === '/perfil' }"
               >
-                <img
-                  v-if="usuario.foto_perfil"
-                  :src="usuario.foto_perfil"
-                  class="h-8 w-8 rounded-full object-cover border-2 border-secondary/20"
-                  :alt="`Foto de perfil de ${usuario.username}`"
-                />
-                <UserCircleIcon 
-                  v-else
-                  class="h-8 w-8 text-secondary"
-                  aria-hidden="true"
-                />
+                <div class="h-8 w-8 rounded-full overflow-hidden bg-background flex items-center justify-center">
+                  <img
+                    v-if="usuario.foto_perfil"
+                    :src="usuario.foto_perfil"
+                    class="h-full w-full object-cover"
+                    :alt="`Foto de perfil de ${usuario.username}`"
+                  />
+                  <UserCircleIcon 
+                    v-else
+                    class="h-8 w-8 text-primary"
+                    aria-hidden="true"
+                  />
+                </div>
                 <span class="text-text font-medium">{{ usuario.first_name || usuario.username }}</span>
               </router-link>
             </div>
