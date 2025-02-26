@@ -1,6 +1,5 @@
 from django.db import models
 from apps.usuarios_app.models import Usuario
-from apps.categorias_app.models import Categoria
 from apps.tableros_app.models import Tablero
 
 class Tarea(models.Model):
@@ -23,7 +22,6 @@ class Tarea(models.Model):
     prioridad = models.CharField(max_length=10, choices=PRIORIDAD_CHOICES, default='media')
     estado = models.CharField(max_length=15, choices=ESTADO_CHOICES, default='pendiente')
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='tareas')
-    categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True, blank=True, related_name='tareas')
     tablero = models.ForeignKey(Tablero, on_delete=models.CASCADE, related_name='tareas')
     
     class Meta:

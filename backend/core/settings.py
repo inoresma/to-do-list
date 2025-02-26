@@ -39,8 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'apps.usuarios_app.apps.UsuariosAppConfig',
     'apps.tareas_app.apps.TareasAppConfig',
-    'apps.categorias_app.apps.CategoriasAppConfig',
-    'apps.comentarios_app.apps.ComentariosAppConfig',
     'apps.notificaciones_app.apps.NotificacionesAppConfig',
     'rest_framework',
     'corsheaders',
