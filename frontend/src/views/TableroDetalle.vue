@@ -383,18 +383,16 @@ export default {
       };
     });
     
-    // Función para cargar los datos del tablero y sus tareas
+    // Cargar datos del tablero y tareas
     const cargarDatos = async () => {
-      console.log('Iniciando carga de datos...');
       cargando.value = true;
       error.value = null;
       
       try {
-        // Obtener datos del tablero
-        console.log(`Cargando tablero ${tableroId}...`);
+        // Cargar tablero
         const tableroResponse = await fetch(`/api/tableros/${tableroId}/`, {
           credentials: 'include',
-          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+          headers: { 'Cache-Control': 'no-cache' }
         });
         
         if (!tableroResponse.ok) {
@@ -402,13 +400,11 @@ export default {
         }
         
         tablero.value = await tableroResponse.json();
-        console.log('Tablero cargado:', tablero.value);
         
-        // Obtener tareas del tablero
-        console.log(`Cargando tareas para tablero ${tableroId}...`);
+        // Cargar tareas
         const tareasResponse = await fetch(`/api/tareas/?tablero=${tableroId}`, {
           credentials: 'include',
-          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+          headers: { 'Cache-Control': 'no-cache' }
         });
         
         if (!tareasResponse.ok) {
@@ -416,35 +412,17 @@ export default {
         }
         
         tareas.value = await tareasResponse.json();
-        console.log('Tareas cargadas:', tareas.value.length);
       } catch (err) {
-        console.error('Error al cargar datos:', err);
         error.value = err.message;
         tareas.value = []; 
       } finally {
-        console.log('Finalizando carga de datos');
         cargando.value = false;
       }
     };
     
-    // Función para recargar los datos
+    // Botón para recargar datos
     const recargarDatos = () => {
-      error.value = null;
       cargarDatos();
-    };
-    
-    // Inicializar formulario de tarea
-    const inicializarFormularioTarea = () => {
-      formTarea.value = {
-        titulo: '',
-        descripcion: '',
-        fecha_vencimiento: '',  // Campo opcional
-        estado: 'pendiente',    // Siempre pendiente para tareas nuevas
-        prioridad: 'media',
-        tablero: tableroId
-      };
-      modoEdicion.value = false;
-      tareaEditando.value = null;
     };
     
     // Abrir modal para crear tarea
@@ -453,7 +431,20 @@ export default {
       mostrarModalTarea.value = true;
     };
     
-    // Editar tarea existente
+    // Inicializar formulario
+    const inicializarFormularioTarea = () => {
+      formTarea.value = {
+        titulo: '',
+        descripcion: '',
+        fecha_vencimiento: '',
+        estado: 'pendiente',
+        prioridad: 'media'
+      };
+      modoEdicion.value = false;
+      tareaEditando.value = null;
+    };
+    
+    // Editar tarea
     const editarTarea = (tarea) => {
       formTarea.value = { ...tarea };
       modoEdicion.value = true;
@@ -465,47 +456,48 @@ export default {
     const guardarTarea = async () => {
       try {
         loading.value = true;
+        
         const csrfToken = document.cookie.split('; ')
           .find(row => row.startsWith('csrftoken='))
           ?.split('=')[1];
-
+        
+        // Si fecha_vencimiento está vacío, enviar null
+        const datos = {
+          ...formTarea.value,
+          fecha_vencimiento: formTarea.value.fecha_vencimiento || null,
+          tablero: tableroId
+        };
+        
+        // Si es creación nueva, siempre estado pendiente
+        if (!modoEdicion.value) {
+          datos.estado = 'pendiente';
+        }
+        
         const url = modoEdicion.value 
           ? `/api/tareas/${tareaEditando.value.id}/` 
           : `/api/tareas/`;
         
         const method = modoEdicion.value ? 'PUT' : 'POST';
         
-        // Preparar los datos a enviar
-        const datosParaEnviar = {
-          ...formTarea.value,
-          tablero: tableroId
-        };
-        
-        // Si fecha_vencimiento está vacío, enviarlo como null en lugar de cadena vacía
-        if (!datosParaEnviar.fecha_vencimiento) {
-          datosParaEnviar.fecha_vencimiento = null;
-        }
-        
-        console.log(`${method} a ${url} con datos:`, datosParaEnviar);
         const response = await fetch(url, {
           method,
           headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrfToken || '',
           },
-          body: JSON.stringify(datosParaEnviar),
+          body: JSON.stringify(datos),
           credentials: 'include'
         });
         
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.detail || `Error al guardar la tarea (${response.status})`);
+          throw new Error(errorData.detail || 'Error al guardar la tarea');
         }
         
-        // Recargar tareas sin activar el estado de carga principal
+        // Recargar tareas
         const tareasResponse = await fetch(`/api/tareas/?tablero=${tableroId}`, {
           credentials: 'include',
-          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+          headers: { 'Cache-Control': 'no-cache' }
         });
         
         if (tareasResponse.ok) {
@@ -514,14 +506,13 @@ export default {
         
         mostrarModalTarea.value = false;
       } catch (error) {
-        console.error('Error al guardar tarea:', error);
         alert(error.message);
       } finally {
         loading.value = false;
       }
     };
     
-    // Actualizar estado de tarea (al arrastrar)
+    // Actualizar estado al arrastrar
     const actualizarEstadoTarea = async (tarea, nuevoEstado) => {
       try {
         const csrfToken = document.cookie.split('; ')
@@ -541,18 +532,16 @@ export default {
         });
         
         if (!response.ok) {
-          throw new Error(`Error al actualizar estado (${response.status})`);
+          throw new Error('Error al actualizar estado');
         }
         
-        // Actualizar la tarea localmente
+        // Actualizar la tarea en el array local
         const index = tareas.value.findIndex(t => t.id === tarea.id);
         if (index !== -1) {
           tareas.value[index].estado = nuevoEstado;
         }
       } catch (error) {
-        console.error('Error al actualizar estado:', error);
         alert('Error al actualizar el estado de la tarea');
-        await cargarDatos(); // Recargar datos en caso de error
       }
     };
     
@@ -570,6 +559,7 @@ export default {
         const response = await fetch(`/api/tareas/${tarea.id}/`, {
           method: 'DELETE',
           headers: {
+            'Content-Type': 'application/json',
             'X-CSRFToken': csrfToken || '',
           },
           credentials: 'include'
@@ -579,24 +569,20 @@ export default {
           throw new Error(`Error al eliminar tarea (${response.status})`);
         }
         
-        // Actualizar localmente sin recargar
+        // Eliminar tarea del array local
         tareas.value = tareas.value.filter(t => t.id !== tarea.id);
       } catch (error) {
-        console.error('Error al eliminar tarea:', error);
         alert('Error al eliminar la tarea');
-        await cargarDatos(); // Recargar datos en caso de error
       }
     };
     
     // Cerrar modal de tarea
     const cerrarModalTarea = () => {
       mostrarModalTarea.value = false;
-      modoEdicion.value = false;
-      tareaEditando.value = null;
       inicializarFormularioTarea();
     };
     
-    // Manejar cambio de arrastrar y soltar
+    // Manejar cambio al arrastrar
     const onDragChange = async (e, columna) => {
       if (e.added) {
         const tarea = e.added.element;
@@ -606,7 +592,7 @@ export default {
       }
     };
     
-    // Formatear fecha para mostrar
+    // Formatear fecha
     const formatearFecha = (fecha) => {
       if (!fecha) return 'Sin fecha';
       return new Date(fecha).toLocaleString('es-ES', {
@@ -617,7 +603,7 @@ export default {
       });
     };
     
-    // Obtener clase CSS según prioridad
+    // Obtener clase según prioridad
     const prioridadClase = (prioridad) => {
       const clases = {
         baja: 'bg-green-50/80 hover:bg-green-100/80',
@@ -627,9 +613,7 @@ export default {
       return clases[prioridad] || 'bg-white hover:bg-gray-50/80';
     };
     
-    // Cargar datos al montar el componente
     onMounted(() => {
-      console.log('Componente TableroDetalle montado');
       cargarDatos();
     });
     
