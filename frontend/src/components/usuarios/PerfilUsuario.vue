@@ -175,6 +175,7 @@ const formData = ref({
 
 const originalData = ref(null)
 const cargando = ref(true)
+const error = ref(null)
 
 onMounted(async () => {
   try {
@@ -215,6 +216,9 @@ const handleSubmit = async (event) => {
   event.preventDefault()
   
   try {
+    cargando.value = true
+    error.value = null
+    
     const form = new FormData()
     
     // Agregar todos los campos excepto foto_perfil
@@ -242,11 +246,21 @@ const handleSubmit = async (event) => {
       }
     })
 
+    const data = await response.json()
+
     if (!response.ok) {
-      throw new Error('Error al actualizar el perfil')
+      // Manejar diferentes tipos de errores
+      if (data.username) {
+        throw new Error(`Nombre de usuario: ${data.username[0]}`)
+      } else if (data.email) {
+        throw new Error(`Email: ${data.email[0]}`)
+      } else if (data.detail) {
+        throw new Error(data.detail)
+      } else {
+        throw new Error('Error al actualizar el perfil')
+      }
     }
 
-    const data = await response.json()
     formData.value = {
       ...data,
       foto_perfil: data.foto_perfil || null
@@ -262,7 +276,9 @@ const handleSubmit = async (event) => {
     alert('Perfil actualizado correctamente')
   } catch (error) {
     console.error('Error al actualizar perfil:', error)
-    alert(error.message || 'Error al actualizar el perfil')
+    alert(error.message)
+  } finally {
+    cargando.value = false
   }
 }
 

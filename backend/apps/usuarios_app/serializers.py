@@ -11,7 +11,19 @@ class UsuarioSerializer(serializers.ModelSerializer):
                  'ultimo_acceso']
         read_only_fields = ['fecha_registro', 'ultimo_acceso']
         extra_kwargs = {
-            'password': {'write_only': True}
+            'password': {'write_only': True},
+            'username': {
+                'error_messages': {
+                    'unique': 'Este nombre de usuario ya está siendo utilizado.',
+                    'invalid': 'El nombre de usuario contiene caracteres inválidos.'
+                }
+            },
+            'email': {
+                'error_messages': {
+                    'unique': 'Este correo electrónico ya está registrado.',
+                    'invalid': 'Por favor ingrese un correo electrónico válido.'
+                }
+            }
         }
         
         # Documentación de campos

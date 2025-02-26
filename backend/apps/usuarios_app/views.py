@@ -20,9 +20,9 @@ class UsuarioViewSet(viewsets.ModelViewSet):
         return [permissions.IsAuthenticated()]
     
     @extend_schema(
-        summary="Obtener perfil actual",
-        description="Obtiene o actualiza la información del usuario autenticado",
-        methods=['GET', 'PATCH']
+        tags=['usuarios'],
+        summary="Obtener o actualizar perfil actual",
+        description="Obtiene o actualiza la información del usuario autenticado"
     )
     @action(detail=False, methods=['get', 'patch'])
     def me(self, request):
