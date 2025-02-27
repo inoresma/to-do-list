@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.conf import settings
+import re
 
 class UsuarioSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
@@ -82,6 +83,29 @@ class UsuarioSerializer(serializers.ModelSerializer):
                 }
             }
         } 
+    
+    def validate_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError(
+                "La contraseña debe tener al menos 8 caracteres."
+            )
+        
+        if not re.search(r'[A-Z]', value):
+            raise serializers.ValidationError(
+                "La contraseña debe incluir al menos una letra mayúscula."
+            )
+            
+        if not re.search(r'[0-9]', value):
+            raise serializers.ValidationError(
+                "La contraseña debe incluir al menos un número."
+            )
+            
+        if not re.search(r'[!@#$%^&*()_+\-=\[\]{};:\'",.<>/?\\|]', value):
+            raise serializers.ValidationError(
+                "La contraseña debe incluir al menos un carácter especial."
+            )
+            
+        return value
         
     def to_representation(self, instance):
         ret = super().to_representation(instance)
