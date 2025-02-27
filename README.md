@@ -47,13 +47,13 @@ Sistema de gestión de tareas que permite a los usuarios organizar sus actividad
 ## Paleta de colores
 La aplicación utiliza la siguiente paleta de colores:
 
-| Nombre        | Uso                  | Código Hex |
-|---------------|----------------------|------------|
-| `primary`     | Color principal      | `#3B82F6`  |
-| `accent`      | Acentos y destacados | `#2563EB`  |
-| `background`  | Fondo principal      | `#F9FAFB`  |
-| `text`        | Texto principal      | `#1F2937`  |
-| `secondary`   | Texto secundario     | `#6B7280`  |
+| Nombre        | Uso                  | Código Hex | Muestra |
+|--------------|----------------------|------------|---------|
+| `primary`    | Color principal      | `#3B82F6`  | <span style="display:inline-block;width:20px;height:20px;background:#3B82F6;"></span> |
+| `accent`     | Acentos y destacados | `#2563EB`  | <span style="display:inline-block;width:20px;height:20px;background:#2563EB;"></span> |
+| `background` | Fondo principal      | `#F9FAFB`  | <span style="display:inline-block;width:20px;height:20px;background:#F9FAFB;border:1px solid #ccc;"></span> |
+| `text`       | Texto principal      | `#1F2937`  | <span style="display:inline-block;width:20px;height:20px;background:#1F2937;"></span> |
+| `secondary`  | Texto secundario     | `#6B7280`  | <span style="display:inline-block;width:20px;height:20px;background:#6B7280;"></span> |
 
 *Esta paleta está basada en Tailwind CSS*
 
@@ -84,6 +84,7 @@ to-do-list/
 
 
 .[!IMPORTANT]
+a
 ## Requisitos previos
 Antes de comenzar, asegúrate de tener instalado:
 
@@ -127,31 +128,8 @@ source venv/bin/activate
 # Verificar que el entorno está activado (debería mostrar el prefijo (venv))
 ```
 
-### 3. Configurar variables de entorno:
-```bash
-# Crear archivo .env en la raíz del proyecto
-# Puedes copiar desde el ejemplo proporcionado:
-cp .env.example .env
 
-# Editar el archivo .env con tu editor preferido:
-# Windows:
-notepad .env
-# macOS/Linux:
-nano .env
-```
-
-Ejemplo de contenido del archivo `.env`:
-```
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=todolistdb
-POSTGRES_HOST=db
-POSTGRES_PORT=5432
-SECRET_KEY=tu-clave-secreta-personalizada
-DEBUG=True
-```
-
-### 4. Construir y levantar los contenedores:
+### 3. Construir y levantar los contenedores:
 ```bash
 # Asegúrate de que Docker Desktop esté en ejecución
 docker-compose up -d --build
@@ -165,7 +143,7 @@ Este comando:
 
 
 
-### 5. Verificar que los servicios estén funcionando:
+### 4. Verificar que los servicios estén funcionando:
 ```bash
 docker-compose ps
 ```
@@ -175,7 +153,7 @@ Deberías ver tres servicios en estado "Up":
 - to-do-list-backend-1
 - to-do-list-frontend-1
 
-### 6. Comandos útiles para gestionar los contenedores:
+### 5. Comandos útiles para gestionar los contenedores:
 
 #### Para detener los servicios:
 ```bash
@@ -204,7 +182,7 @@ docker-compose up -d
 ```bash
 docker-compose restart backend
 ```
-### 7. Crear un superusuario (administrador django):
+### 6. Crear un superusuario (administrador django):
 ```bash
 docker-compose exec backend python manage.py createsuperuser
 ```
