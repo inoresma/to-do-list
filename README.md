@@ -1,4 +1,4 @@
-﻿# ToDoList - Gestor de Tareas
+﻿# ToDoList Responsivo - Gestor de Tareas
 
 ## Capturas de pantalla
 
@@ -21,7 +21,7 @@
 *Página de perfil de usuario*
 
 ## Descripción
-Sistema de gestión de tareas que permite a los usuarios organizar sus actividades en tableros personalizados, con características como priorización, fechas de vencimiento y notificaciones.
+Sistema de gestión de tareas que permite a los usuarios organizar sus actividades en tableros personalizados, con características como priorización, fechas de vencimiento y notificaciones, lo que se podria decir que hace especial a este proyecto es que esta hecho responsivamente con TailwindCSS.
 
 ## Características Principales
 - Autenticación de usuarios
