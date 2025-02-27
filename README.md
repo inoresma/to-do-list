@@ -1,5 +1,25 @@
 ﻿# ToDoList - Gestor de Tareas
 
+## Capturas de pantalla
+
+![Página de inicio](/screenshots/inicio.png)
+*Página de inicio de ToDoList*
+
+![Tableros](/screenshots/tableros.png)
+*Vista de tableros personalizados*
+
+![Tableros](/screenshots/tableros_responsive.png)
+*Vista de tableros responsive*
+
+![Tareas](/screenshots/tareas.png)
+*Gestión de tareas con prioridades*
+
+![Tareas](/screenshots/tareas_responsive.png)
+*Gestión de tareas responsive*
+
+![Perfil de usuario](/screenshots/perfil.png)
+*Página de perfil de usuario*
+
 ## Descripción
 Sistema de gestión de tareas que permite a los usuarios organizar sus actividades en tableros personalizados, con características como priorización, fechas de vencimiento y notificaciones.
 
@@ -23,6 +43,44 @@ Sistema de gestión de tareas que permite a los usuarios organizar sus actividad
   - Tailwind CSS
   - Heroicons
   - Pinia (Gestión de estado)
+
+## Paleta de colores
+La aplicación utiliza la siguiente paleta de colores:
+
+| Nombre        | Uso                  | Código Hex |
+|---------------|----------------------|------------|
+| `primary`     | Color principal      | `#3B82F6`  |
+| `accent`      | Acentos y destacados | `#2563EB`  |
+| `background`  | Fondo principal      | `#F9FAFB`  |
+| `text`        | Texto principal      | `#1F2937`  |
+| `secondary`   | Texto secundario     | `#6B7280`  |
+
+*Esta paleta está basada en Tailwind CSS*
+
+
+## Estructura del proyecto
+
+```
+to-do-list/
+├── backend/                # Servidor Django
+│   ├── apps/               # Aplicaciones Django
+│   │   ├── tableros_app/   # App para tableros
+│   │   ├── tareas_app/     # App para tareas
+│   │   └── usuarios_app/   # App para usuarios
+│   ├── core/               # Configuración principal de Django
+│   └── requirements.txt    # Dependencias de Python
+├── frontend/               # Cliente Vue.js
+│   ├── public/             # Archivos estáticos públicos
+│   ├── src/                # Código fuente Vue
+│   │   ├── assets/         # Recursos (CSS, imágenes)
+│   │   ├── components/     # Componentes Vue
+│   │   ├── composables/    # Hooks personalizados
+│   │   ├── router/         # Configuración de rutas
+│   │   ├── stores/         # Estados de Pinia
+│   │   └── views/          # Páginas principales
+│   └── package.json        # Dependencias de Node
+└── docker-compose.yml      # Configuración de Docker
+```
 
 
 .[!IMPORTANT]
@@ -164,3 +222,7 @@ Una vez que los contenedores estén en funcionamiento, puedes acceder a:
 - **Admin de Django**: http://localhost:8000/admin (usa el superusuario creado anteriormente)
 
 
+## Licencia
+Este proyecto está licenciado bajo la Licencia MIT - ver el archivo LICENSE para más detalles.
+---
+Desarrollado por inoresma © 2025
