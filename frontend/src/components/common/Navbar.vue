@@ -92,9 +92,10 @@
                 <div class="h-8 w-8 rounded-full overflow-hidden bg-background flex items-center justify-center">
                   <img
                     v-if="usuario.foto_perfil"
-                    :src="usuario.foto_perfil"
+                    :src="procesarUrlImagen(usuario.foto_perfil)"
                     class="h-full w-full object-cover"
                     :alt="`Foto de perfil de ${usuario.username}`"
+                    @error="handleImageError"
                   />
                   <UserCircleIcon 
                     v-else
@@ -145,13 +146,34 @@ import {
 import { useAuth } from '@/composables/useAuth'
 import { useRouter } from 'vue-router'
 import { formatearFecha } from '@/utils/formatters'
+import { useAuthStore } from '@/stores/auth'
 
-const { usuario, cargando, error, obtenerUsuario, obtenerNotificacionesNoLeidas } = useAuth()
+const { usuario, cargando, error, obtenerUsuario, obtenerNotificacionesNoLeidas, logout } = useAuth()
+const authStore = useAuthStore()
 const notificacionesNoLeidas = ref(0)
 const notificaciones = ref([])
 const cargandoNotificaciones = ref(false)
 const mostrarNotificaciones = ref(false)
 const router = useRouter()
+
+// Función para procesar URLs de imágenes
+const procesarUrlImagen = (url) => {
+  if (!url) return null
+  
+  // Reemplazar 'backend' por 'localhost' si está presente
+  if (url.includes('backend')) {
+    url = url.replace('backend', 'localhost')
+  }
+  
+  try {
+    // Verificar si la URL es válida
+    new URL(url)
+    return url
+  } catch (e) {
+    // Si no es una URL válida, construirla
+    return `${window.location.origin}/media/${url}`
+  }
+}
 
 const obtenerNotificaciones = async () => {
   try {
@@ -205,30 +227,20 @@ const manejarClickNotificacion = async (notificacion) => {
 
 const cerrarSesion = async () => {
   try {
-    const csrfToken = document.cookie.split('; ')
-      .find(row => row.startsWith('csrftoken='))
-      ?.split('=')[1];
-
-    const response = await fetch('/api/logout/', {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrfToken || '',
-      }
-    })
-    
-    if (response.ok) {
-      usuario.value = null
-      router.push('/') // Cambiamos /login por /
-    } else {
-      throw new Error('Error al cerrar sesión')
-    }
+    await logout()
+    // Forzar una recarga completa para reiniciar el estado
+    window.location.href = '/'
   } catch (error) {
     console.error('Error al cerrar sesión:', error)
     alert('Error al cerrar sesión')
   }
 }
+
+const handleImageError = () => {
+  // Handle image loading error
+  console.error('Error al cargar la imagen del perfil')
+}
+
 onMounted(async () => {
   await obtenerUsuario()
   if (usuario.value) {

@@ -15,8 +15,8 @@
           <div class="shrink-0">
             <div class="h-20 w-20 sm:h-24 sm:w-24 rounded-full overflow-hidden bg-background flex items-center justify-center">
               <img 
-                v-if="formData.foto_perfil && typeof formData.foto_perfil === 'string'" 
-                :src="formData.foto_perfil" 
+                v-if="previewImage" 
+                :src="previewImage" 
                 class="h-full w-full object-cover" 
                 alt="Foto de perfil" 
               />
@@ -161,7 +161,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { PhotoIcon, UserCircleIcon } from '@heroicons/vue/24/solid'
 
 const formData = ref({
@@ -173,6 +173,7 @@ const formData = ref({
   foto_perfil: null
 })
 
+const previewImage = ref(null)
 const originalData = ref(null)
 const cargando = ref(true)
 const error = ref(null)
@@ -185,11 +186,17 @@ onMounted(async () => {
     })
     if (response.ok) {
       const data = await response.json()
-      // Asegurarse de que la foto_perfil sea una URL válida
-      formData.value = {
-        ...data,
-        foto_perfil: data.foto_perfil || null
+      console.log('Datos del usuario recibidos:', data)
+      
+      formData.value = { ...data }
+      
+      // Inicializar la imagen de previsualización con la foto de perfil actual
+      if (data.foto_perfil) {
+        // Asegurarse de que la URL use localhost en lugar de backend
+        previewImage.value = data.foto_perfil.replace('backend', 'localhost')
+        console.log('URL de imagen inicializada:', previewImage.value)
       }
+      
       originalData.value = { ...formData.value }
     }
   } catch (error) {
@@ -202,11 +209,17 @@ onMounted(async () => {
 const handleFileChange = (event) => {
   const file = event.target.files[0]
   if (file) {
+    // Revocar URL previa si existe
+    if (previewImage.value && previewImage.value.startsWith('blob:')) {
+      URL.revokeObjectURL(previewImage.value)
+    }
+    
     // Crear una URL temporal para previsualizar la imagen
-    const imageUrl = URL.createObjectURL(file)
+    previewImage.value = URL.createObjectURL(file)
+    console.log('URL de previsualización creada:', previewImage.value)
+    
     formData.value = {
       ...formData.value,
-      foto_perfil: imageUrl,
       _foto_perfil_file: file // Guardamos el archivo separado
     }
   }
@@ -230,6 +243,7 @@ const handleSubmit = async (event) => {
 
     // Agregar la foto solo si hay un nuevo archivo
     if (formData.value._foto_perfil_file) {
+      console.log('Agregando archivo de imagen al formulario:', formData.value._foto_perfil_file.name)
       form.append('foto_perfil', formData.value._foto_perfil_file)
     }
 
@@ -237,6 +251,7 @@ const handleSubmit = async (event) => {
       .find(row => row.startsWith('csrftoken='))
       ?.split('=')[1];
 
+    console.log('Enviando formulario al servidor...')
     const response = await fetch('/api/usuarios/me/', {
       method: 'PATCH',
       body: form,
@@ -247,6 +262,7 @@ const handleSubmit = async (event) => {
     })
 
     const data = await response.json()
+    console.log('Respuesta del servidor:', data)
 
     if (!response.ok) {
       // Manejar diferentes tipos de errores
@@ -261,17 +277,28 @@ const handleSubmit = async (event) => {
       }
     }
 
-    formData.value = {
-      ...data,
-      foto_perfil: data.foto_perfil || null
-    }
-    originalData.value = { ...formData.value }
+    // Actualizar con la respuesta del servidor
+    formData.value = { ...data }
     
     // Limpiar la URL temporal si existe
+    if (previewImage.value && previewImage.value.startsWith('blob:')) {
+      URL.revokeObjectURL(previewImage.value)
+    }
+    
+    // Actualizar la imagen de previsualización con la URL del servidor
+    if (data.foto_perfil) {
+      previewImage.value = data.foto_perfil.replace('backend', 'localhost')
+      console.log('URL de imagen actualizada:', previewImage.value)
+    } else {
+      previewImage.value = null
+    }
+    
+    // Eliminar el archivo temporal
     if (formData.value._foto_perfil_file) {
-      URL.revokeObjectURL(formData.value.foto_perfil)
       delete formData.value._foto_perfil_file
     }
+    
+    originalData.value = { ...formData.value }
     
     alert('Perfil actualizado correctamente')
   } catch (error) {
@@ -285,6 +312,14 @@ const handleSubmit = async (event) => {
 const resetForm = () => {
   if (originalData.value) {
     formData.value = { ...originalData.value }
+    
+    // Revocar URL si existe
+    if (previewImage.value && previewImage.value.startsWith('blob:')) {
+      URL.revokeObjectURL(previewImage.value)
+    }
+    
+    // Restaurar la imagen de previsualización original
+    previewImage.value = originalData.value.foto_perfil
   }
 }
 </script>

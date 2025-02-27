@@ -10,12 +10,8 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=admin
     ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - "5433:5432"
+    restart: unless-stopped
 
   backend:
     build: 
@@ -27,8 +23,7 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     environment:
       - POSTGRES_DB=db_todolist
       - POSTGRES_USER=postgres
@@ -36,7 +31,13 @@ services:
       - POSTGRES_HOST=db
       - DJANGO_SECRET_KEY=django-insecure-7up95(!wmk$vk6f*(8^r)k8%i1i6lms!jsjrb59971v=ut)f-g
       - DJANGO_DEBUG=true
-      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend,frontend
+      - CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://frontend:5173
+    command: >
+      sh -c "mkdir -p /app/backend/media/perfiles &&
+             chmod -R 777 /app/backend/media &&
+             /start-backend.sh"
+    restart: unless-stopped
 
   frontend:
     build:
@@ -52,7 +53,9 @@ services:
     environment:
       - NODE_ENV=development
       - VITE_API_URL=http://localhost:8000
+    restart: unless-stopped
 
 volumes:
   postgres_data:
   media_volume:
+    driver: local

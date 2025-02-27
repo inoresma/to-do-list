@@ -1,0 +1,58 @@
+FROM python:3.11-slim
+
+WORKDIR /app/backend
+
+# Instalar dependencias del sistema necesarias
+RUN apt-get update && apt-get install -y \
+    gcc \
+    postgresql-client \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar requirements.txt primero para aprovechar la caché de Docker
+COPY backend/requirements.txt .
+
+# Instalar dependencias Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar el código del proyecto
+COPY backend/ .
+
+# Crear el directorio para archivos estáticos y media
+RUN mkdir -p staticfiles
+RUN mkdir -p media/perfiles
+RUN chmod -R 777 media
+
+# Crear el script de inicio directamente en Docker
+RUN printf '#!/bin/bash\n\
+set -e\n\
+\n\
+# Esperar a que PostgreSQL esté disponible\n\
+until PGPASSWORD=$POSTGRES_PASSWORD psql -h db -U $POSTGRES_USER -d $POSTGRES_DB -c "\\q"; do\n\
+  echo "PostgreSQL aún no está disponible - esperando..."\n\
+  sleep 2\n\
+done\n\
+\n\
+echo "PostgreSQL está disponible, continuando..."\n\
+\n\
+# Asegurarse de que el directorio de archivos estáticos y media existan\n\
+mkdir -p staticfiles\n\
+mkdir -p media/perfiles\n\
+chmod -R 777 media\n\
+\n\
+# Ejecutar migraciones\n\
+python manage.py migrate\n\
+\n\
+# Recopilar archivos estáticos\n\
+python manage.py collectstatic --noinput\n\
+\n\
+# Iniciar servidor de desarrollo\n\
+python manage.py runserver 0.0.0.0:8000\n\
+' > /start-backend.sh
+
+RUN chmod +x /start-backend.sh
+
+# Puerto en el que corre el servidor Django
+EXPOSE 8000
+
+CMD ["/start-backend.sh"]

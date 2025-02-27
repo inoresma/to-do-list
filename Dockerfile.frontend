@@ -1,0 +1,35 @@
+FROM node:18-alpine
+
+WORKDIR /app/frontend
+
+# Copiar package.json y package-lock.json (o yarn.lock)
+COPY frontend/package*.json ./
+
+# Instalar dependencias
+RUN npm install
+
+# Copiar el código fuente
+COPY frontend/ ./
+
+# Crear el script de inicio directamente en Docker
+RUN printf '#!/bin/sh\n\
+set -e\n\
+\n\
+# Para desarrollo\n\
+if [ "$NODE_ENV" = "development" ]; then\n\
+  npm run dev -- --host\n\
+else\n\
+  # Para producción\n\
+  npm run build\n\
+  # Usar un servidor ligero para servir la aplicación compilada\n\
+  npm install -g serve\n\
+  serve -s dist -l 5173\n\
+fi\n\
+' > /start-frontend.sh
+
+RUN chmod +x /start-frontend.sh
+
+# Puerto donde corre Vite durante desarrollo
+EXPOSE 5173
+
+CMD ["/start-frontend.sh"]

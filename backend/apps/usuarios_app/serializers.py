@@ -1,8 +1,10 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 class UsuarioSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
+    foto_perfil = serializers.ImageField(required=False)
     
     class Meta:
         model = get_user_model()
@@ -80,3 +82,25 @@ class UsuarioSerializer(serializers.ModelSerializer):
                 }
             }
         } 
+        
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if ret['foto_perfil']:
+            # Asegurarse de que la URL sea absoluta
+            if not ret['foto_perfil'].startswith('http'):
+                request = self.context.get('request')
+                if request:
+                    # Usar el host de la solicitud actual para construir la URL
+                    host = request.get_host()
+                    # Siempre reemplazar 'backend' por 'localhost' para acceso desde el navegador
+                    if 'backend' in host:
+                        host = host.replace('backend', 'localhost')
+                    protocol = 'https' if request.is_secure() else 'http'
+                    ret['foto_perfil'] = f"{protocol}://{host}{settings.MEDIA_URL}{ret['foto_perfil']}"
+                else:
+                    # Fallback a localhost si no hay solicitud
+                    ret['foto_perfil'] = f"http://localhost:8000{settings.MEDIA_URL}{ret['foto_perfil']}"
+            # También reemplazar 'backend' por 'localhost' si ya es una URL completa
+            elif 'backend' in ret['foto_perfil']:
+                ret['foto_perfil'] = ret['foto_perfil'].replace('backend', 'localhost')
+        return ret 

@@ -20,7 +20,7 @@
           </template>
           <template v-else>
             <router-link 
-              to="/login?redirect=/tableros" 
+              to="/login" 
               class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
             >
               Iniciar Sesión

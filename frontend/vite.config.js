@@ -8,13 +8,17 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://backend:8000',
+        target: 'http://backend:8000',
         changeOrigin: true,
+        secure: false,
+        ws: true,
         credentials: 'include'
       },
       '/media': {
-        target: process.env.VITE_API_URL || 'http://backend:8000',
-        changeOrigin: true
+        target: 'http://backend:8000',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path
       }
     }
   },
